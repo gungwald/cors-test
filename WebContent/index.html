@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Orchestrator Client</title>
+</head>
+<body>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Column Name</th>
+                <th>Column Type</th>
+            </tr>
+        </thead>
+        <tbody id="resultTableBody">
+        </tbody>
+    </table>
+
+    <div id="errorArea"></div>
+    
+<script type="text/javascript">
+const testData = [ { "objectName": "BDTEST.ARCH_BDTEST_BDTEST_DB_HOSPITAL_S4_V5", "location": "gs://cah-dm-dev-bdtest-bdtest-db/d2/arch/bdtest/bdtest_db/hospital_s4_v5/hdp_end_date_part=9999-12-31", "columns": [ { "name": "provider_id", "type": "string" }, { "name": "hospital_name", "type": "string" }, { "name": "address", "type": "string" }, { "name": "city", "type": "string" }, { "name": "state", "type": "string" }, { "name": "zip_code", "type": "string" }, { "name": "county_name", "type": "string" }, { "name": "phone_number", "type": "string" }, { "name": "number_of_beds", "type": "int" }, { "name": "patient_revenue", "type": "decimal(13,2)" }, { "name": "tps_score", "type": "decimal(5,2)" }, { "name": "notes", "type": "string" }, { "name": "row_add_stp", "type": "timestamp" }, { "name": "row_update_stp", "type": "timestamp" }, { "name": "hdp_start_date", "type": "string" }, { "name": "hdp_current_version_flag", "type": "string" }, { "name": "hdp_tx_flag", "type": "string" }, { "name": "hdp_end_date", "type": "string" }, { "name": "hdp_load_stp", "type": "timestamp" }, { "name": "hdp_end_date_part", "type": "string" } ] } ];
+
+function addResultRow(columnName, columnType) 
+{
+    const putResultsHere = document.getElementById("resultTableBody");
+    const row = document.createElement("tr");
+    const nameCell = document.createElement("td");
+    const typeCell = document.createElement("td");
+    nameCell.textContent = columnName;
+    typeCell.textContent = columnType;
+    putResultsHere.appendChild(row);
+    row.appendChild(nameCell);
+    row.appendChild(typeCell);
+}
+
+function displayError(errorMessage)
+{
+    const errorArea = document.getElementById("errorArea");
+    errorArea.textContent = errorMessage;
+    console.log(errorMessage);
+}
+
+const request = new XMLHttpRequest()
+const url = "http://ldec5009dmpan1:8060/orchestrator/api/tabledefs?filter=objectName:BDTEST.ARCH_BDTEST_BDTEST_DB_HOSPITAL_S4_V5;schemaType:hive&fields=objectName,location,columns";
+//const url = "http://bliwathiwither.com";
+try {
+    request.open('GET', url, true);
+} catch (e) {
+    displayError(e);
+}
+
+request.onreadystatechange = function() {
+    if (request.readyState == 4 && request.status == 0) {
+        displayError("Request failed, possibly because it was a Cross-Origin Resource Sharing (CORS) attempt. Check the JavaScript console to see if a CORS error was logged.");
+    }
+}
+
+request.onload = function () {
+    const responseData = JSON.parse(this.response)
+
+    if (request.status >= 200 && request.status < 400) {
+        responseData[0].columns.forEach(column => {
+            addResultRow(column.name, column.type);
+        })
+    } else {
+        displayError(this.response);
+    }
+}
+
+try {
+    request.send()
+} catch (e) {
+    displayError(e);
+}
+
+</script>
+
+</body>
+</html>
